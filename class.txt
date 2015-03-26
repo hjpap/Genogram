@@ -1,0 +1,26 @@
+public class QueryResult
+    {
+        public string Name { get; set; }
+        public string Sex { get; set; }
+        public int Age { get; set; }
+        public List<QueryResult> Partner { get; set; }
+        public List<QueryResult> Guardian { get; set; }
+        public List<QueryResult> Parents { get; set; }
+        public List<QueryResult> BrothersAndSisters { get; set; }
+        public List<QueryResult> Children { get; set; }
+        public List<QueryResult> OtherFMember { get; set; }
+        public List<QueryResult> OtherNMember { get; set; }
+        public List<QueryResult> Mate { get; set; }
+        public List<QueryResult> Ward { get; set; }
+        public int SpecialFlag { get; set; }
+    }
+    public enum RelationshipFlag
+    { 
+        normal=0,
+        Adopted=1,
+        InLaw=2,
+        Foster=3,
+        Half=4,
+        Step=5,
+        Unknow=6
+    }
