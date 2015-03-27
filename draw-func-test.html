@@ -32,9 +32,20 @@ var DrawFunc = function(paper, opts){
 	if(!paper) return;
 	var that = this;
 	/**************
-		Config 
-	***************/
-	
+	 Config
+	 ***************/
+	var _opts = {
+		origin:{
+			x:paper.x/2,
+			y:paper.y/2
+		},
+		gapX:50,
+		gapY:70,
+		dataSource:null
+	};
+	for(var i in opts){
+		_opts[i] = opts[i];
+	}
 	/*******************
 		Private Func
 	********************/
