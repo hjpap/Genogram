@@ -25,14 +25,167 @@
 </div>
 
 <script>
-
+/*
+* 	1##
+*
+*
+* */
 var paper = Raphael(document.getElementById("genogram-host"), 5000, 5000);
 
-var DrawFunc = function(paper, opts){
+var Person = function(paper, opts){
 	if(!paper) return;
 	var that = this;
 	/**************
 	 Config
+	 ***************/
+	that._gender = opts.gender || null;
+	that._ifCurrent = opts.current || null;
+	that.shape = null;
+	that.shape2 = null;
+	that.text = null;
+	that.name = opts.name || "name";
+	that._dia = 5;
+	that._rect = 10;
+	that._x = opts.x || 10;
+	that._y = opts.y || 10;
+	that._strokeColor = '#F37883';
+	that._rectStrokeColor = '#299DCD';
+	that._strokeWidth = 2;
+	/*******************
+	 Private Func
+	 ********************/
+	var _f = {
+		init: function(){
+			if(opts.unkown){
+				this.drawUnkown();
+				return
+			}
+			if(that._gender == 'm')
+				this.drawMale();
+			else if(that._gender == 'f')
+				this.drawFemale();
+			else
+				this.drawUnkownSex();
+			this.drawText();
+		},
+		drawText: function(){
+			that.text = paper.text(that._x+1, that._y+25, that.name);
+		},
+		drawUnkown: function(){
+			that.shape = paper.rect(that._x-3, that._y-2, that._rect+10, that._rect+10);
+			that.shape.attr('stroke', '#6E6E6E');
+			that.shape.attr('stroke-dasharray','- ');
+		},
+		drawUnkownSex: function(){
+			that.shape = paper.text(that._x+2, that._y, "?").attr({
+				font: "20px sans-serif"
+			});
+		},
+		drawMale: function(){
+			if(that._ifCurrent){
+				that.shape2 = paper.rect(that._x-8, that._y-7, that._rect+10, that._rect+10);
+				that.shape2.attr('stroke', that._rectStrokeColor);
+				that.shape2.attr('stroke-width',2);
+			}
+			that.shape = paper.rect(that._x-3, that._y-2, that._rect, that._rect);
+			that.shape.attr('stroke', that._rectStrokeColor);
+			that.shape.attr('stroke-width',that._strokeWidth);
+		},
+		drawFemale: function(){
+			if(that._ifCurrent){
+				that.shape2 = paper.circle(that._x, that._y+2, that._dia+6);
+				that.shape2.attr('stroke', that._strokeColor);
+				that.shape2.attr('stroke-width',2);
+			}
+			that.shape = paper.circle(that._x, that._y+2, that._dia);
+			that.shape.attr('stroke', that._strokeColor);
+			that.shape.attr('stroke-width',that._strokeWidth);
+		}
+	}
+	_f.init();
+	/*********************
+	 Instance Func
+	 **********************/
+	that.x = function(x){
+		if(x){
+			that._x = x;
+			if(that._gender == 'm'){
+				that.shape.attr('x',that._x-3);
+				if(that.shape2)that.shape2.attr('x',that._x-8);
+			}else if(that._gender == 'f'){
+				that.shape.attr('cx',that._x);
+				if(that.shape2)that.shape2.attr('cx',that._x);
+			}else{
+				that.shape.attr('x',that._x+2);
+			}
+			that.text.attr('x',that._x+1);
+		}else{
+			return that._x;
+		}
+	}
+	that.y = function(y){
+		if(y){
+			that._y = y;
+			if(that._gender == 'm'){
+				that.shape.attr('y',that._y-2);
+				if(that.shape2)that.shape2.attr('y',that._y-7);
+			}else if(that._gender == 'f'){
+				that.shape.attr('cy',that._y+2);
+				if(that.shape2)that.shape2.attr('cy',that._y+2);
+			}else{
+				that.shape.attr('y',that._y);
+			}
+			that.text.attr('y',that._y+25);
+		}else{
+			return that._y;
+		}
+	}
+};
+
+var PersonClass = function(name,sex,age){
+	this.Name=name;
+	this.Sex= sex;
+	this.Age= age ||0;
+	this.Partner=[];
+	this.Guardian=[];
+	this.Parents=[];
+	this.BrothersAndSisters=[];
+	this.Children=[];
+	this.OtherFMember=[];
+	this.OtherNMember=[];
+	this.Mate = [];
+	this.SpecialFlag=[]
+};
+
+var createTestData = function(){
+	var person = new PersonClass('Current','Male',25);
+	var father = new PersonClass('Father','Male',50);
+	var mother = new PersonClass('Mother','Famel',45);
+	person.Parents = [father, mother];
+	var child1 = new PersonClass('child1','Male',2);
+	var child2 = new PersonClass('child2','Male',2);
+	var child3 = new PersonClass('child3','Famel',2);
+	person.Children = [child1,child2,child3];
+	var wife = new PersonClass('wife','Famel',20);
+	person.Mate = [wife];
+	return person;
+};
+
+var RelationshipFlag = {
+	normal   : 0,
+	Adopted  : 1,
+	InLaw    : 2,
+	Foster   : 3,
+	Half     : 4,
+	Step     : 5,
+	Unknow   : 6
+};
+
+var DrawFunc = function(paper, opts){
+	if(!paper) return;
+	var that = this;
+	/***************
+	      Config
 	 ***************/
 	var _opts = {
 		origin:{
@@ -40,7 +193,7 @@ var DrawFunc = function(paper, opts){
 			y:paper.y/2
 		},
 		gapX:50,
-		gapY:70,
+		gapY:100,
 		dataSource:null
 	};
 	for(var i in opts){
@@ -49,7 +202,16 @@ var DrawFunc = function(paper, opts){
 	/*******************
 		Private Func
 	********************/
-	
+	var generations = 0;
+	var _f = {
+		convertDataAndDraw: function(person){
+			// ## 1.先画妻子或丈夫
+
+		},
+		drawWifeOrHusband: function(person){
+
+		}
+	};
 	/*********************
 		Instance Func
 	**********************/
