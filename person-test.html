@@ -32,8 +32,9 @@ var Person = function(paper, opts){
 	if(!paper) return;
 	var that = this;
 	/**************
-		Config 
-	***************/
+	 Config
+	 ***************/
+	this.id = opts.id;
 	that._gender = opts.gender || null;
 	that._ifCurrent = opts.current || null;
 	that.shape = null;
@@ -47,18 +48,19 @@ var Person = function(paper, opts){
 	that._strokeColor = '#F37883';
 	that._rectStrokeColor = '#299DCD';
 	that._strokeWidth = 2;
+	that.marriageLine = [];
 	/*******************
-		Private Func
-	********************/
+	 Private Func
+	 ********************/
 	var _f = {
 		init: function(){
 			if(opts.unkown){
 				this.drawUnkown();
 				return
 			}
-			if(that._gender == 'm')
+			if(that._gender == 'Male')
 				this.drawMale();
-			else if(that._gender == 'f')
+			else if(that._gender == 'Female')
 				this.drawFemale();
 			else
 				this.drawUnkownSex();
@@ -96,21 +98,24 @@ var Person = function(paper, opts){
 			that.shape = paper.circle(that._x, that._y+2, that._dia);
 			that.shape.attr('stroke', that._strokeColor);
 			that.shape.attr('stroke-width',that._strokeWidth);
+		},
+		resetLine: function(){
+
 		}
 	}
 	_f.init();
 	/*********************
-		Instance Func
-	**********************/
+	 Instance Func
+	 **********************/
 	that.x = function(x){
 		if(x){
 			that._x = x;
-			if(that._gender == 'm'){
+			if(that._gender == 'Male'){
 				that.shape.attr('x',that._x-3);
 				if(that.shape2)that.shape2.attr('x',that._x-8);
-			}else if(that._gender == 'f'){
+			}else if(that._gender == 'Female'){
 				that.shape.attr('cx',that._x);
-				if(that.shape2)that.shape2.attr('cx',that._x);	
+				if(that.shape2)that.shape2.attr('cx',that._x);
 			}else{
 				that.shape.attr('x',that._x+2);
 			}
@@ -122,12 +127,12 @@ var Person = function(paper, opts){
 	that.y = function(y){
 		if(y){
 			that._y = y;
-			if(that._gender == 'm'){
+			if(that._gender == 'Male'){
 				that.shape.attr('y',that._y-2);
 				if(that.shape2)that.shape2.attr('y',that._y-7);
-			}else if(that._gender == 'f'){
+			}else if(that._gender == 'Female'){
 				that.shape.attr('cy',that._y+2);
-				if(that.shape2)that.shape2.attr('cy',that._y+2);	
+				if(that.shape2)that.shape2.attr('cy',that._y+2);
 			}else{
 				that.shape.attr('y',that._y);
 			}
@@ -136,35 +141,36 @@ var Person = function(paper, opts){
 			return that._y;
 		}
 	}
-}
+};
 
-var m = new Person(paper,{
+
+var me = new Person(paper,{
 	x:400,
 	y:200,
-	gender:'m',
+	gender:'Male',
 	name:'Ricky'
 });
 
-var fm = new Person(paper,{
+var son = new Person(paper,{
 	x:450,
 	y:300,
-	gender:'f',
+	gender:'Female',
 	current:null,
-	name:'Ricky'
+	name:'Ricky d'
 });
 
-var cm = new Person(paper,{
+var wife = new Person(paper,{
 	x:500,
 	y:200,
-	gender:'m',
+	gender:'Female',
 	current:true,
-	name:'Ricky'
+	name:'Ricky w'
 });
 
 var cfm = new Person(paper,{
 	x:760,
 	y:200,
-	gender:'f',
+	gender:'Female',
 	current:true,
 	name:'Ricky'
 });
@@ -186,35 +192,44 @@ var unkown2 = new Person(paper,{
 	name:'Ricky'
 });
 
-/*var Class = function(){
-		var klass = function(){
-			this.init.apply(this,arguments);
-		};
-		klass.prototype.init = function(){};
-		klass.fn = klass.prototype;
-		klass.fn.parent = klass;
-		klass.extend = function(obj){
-			var extended = obj.extended;
-			for(var i in obj){
-				klass[i] = obj[i];
-			}
-			if(extended) extended(klass)
+var Line = function(paper,person, person2 ,relationship){
+	var that = this;
+	that.paper = paper;
+	that.person1 = person;
+	that.person2 = person2;
+	that.relationship = relationship;
+	var drawFunc = {
+		marriage:function(){
+			var gap = 45;
+			var startX,startY,v = 15, h,end;
+			startX = that.person1.x() + 2;
+			startY = that.person1.y() + gap;
+			h = that.person2.x();
+			end = that.person2.y() + gap;
+			that.line = that.paper.path('M '+ startX +','+startY+'V '+(startY+v)+'H '+h+'V '+end);
+			that.person1.marriageLine = that.person1.marriageLine || [];
+			that.person2.marriageLine = that.person2.marriageLine || [];
+			that.person1.marriageLine.push(that.line);
+			that.person2.marriageLine.push(that.line);
 		}
-		
-		klass.include = function(obj){
-			var included = obj.included;
-			for(var i in obj){
-				klass.fn[i] = obj[i];
-			}
-			if(included) included(klass)
-		};
-		
-		return klass;
+	};
+
+	that.init = function(){
+		if(that.line)that.line.remove();
+		switch (that.relationship){
+			case 'marriage':
+				drawFunc.marriage();
+				break;
+		}
 	}
-	
-	var Person = new Class;
-	var per = new Person();
-	debugger*/
+
+	that.init();
+};
+
+	new Line(paper,wife,me,'marriage');
+
+
+
 </script>
 
 

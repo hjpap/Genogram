@@ -13,6 +13,9 @@ public class QueryResult
         public List<QueryResult> Mate { get; set; }
         public List<QueryResult> Ward { get; set; }
         public int SpecialFlag { get; set; }
+ public List<QueryResult> PaternalGrandparents { get; set; }
+        public List<QueryResult> MaternalGrandparents { get; set; }
+
     }
     public enum RelationshipFlag
     { 
