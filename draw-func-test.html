@@ -5,6 +5,8 @@
     <title></title>
 	<script src="ave_ady_jquery.js" type="text/javascript"></script>
 	<script src="raphael-min.js" type="text/javascript"></script>
+	<script src="ave_msf_prg_util_iscroll.js" type="text/javascript" charset="utf-8"></script>
+	<script src="genogram.js" type="text/javascript"></script>
     <style>
 		html,body{
 			width:100%;
@@ -14,573 +16,84 @@
 		}
 
         .genogram-host{
+			//width:100%;
+			//height:100%;
+		}
+		.geno-body{
 			width:100%;
 			height:100%;
+			overflow: hidden;
 		}
-		.adopted-child {
-			stroke-dasharray: 2;
+		svg{
+			transform-origin: 50% 50%;
+			//transform:matrix(0.8,0,0,0.8,0,0);
+			-moz-transition:transform 0.5s ease-in;
+			-webkit-transition: transform 0.5s ease-in;
+			-o-transition: transform 0.5s ease-in;
+			transition: transform 0.5s ease-in;
 		}
-		.foster-child{
-			stroke-dasharray: 4;
-		}
+
     </style>
 </head>
 <body>
+
+<div id="geno-body" class="geno-body">
+	<div id="scroller" style="width:3000px;"></div>
+</div>
 
 <div id="genogram-host" class="genogram-host">
 
 </div>
 
 <script>
-/*
-* 	1##
-*
-*
-* */
-var paper = Raphael(document.getElementById("genogram-host"), 5000, 5000);
 
-var Person = function(paper, opts){
-	if(!paper) return;
-	var that = this;
-	/**************
-	 Config
-	 ***************/
-	this.id = opts.id;
-	that._gender = opts.gender || null;
-	that._ifCurrent = opts.current || null;
-	that.shape = null;
-	that.shape2 = null;
-	that.text = null;
-	that.name = opts.name || "name";
-	that._dia = 5;
-	that._rect = 10;
-	that._x = opts.x || 10;
-	that._y = opts.y || 10;
-	that._strokeColor = '#F37883';
-	that._rectStrokeColor = '#299DCD';
-	that._strokeWidth = 2;
-	/*******************
-	 Private Func
-	 ********************/
-	var _f = {
-		init: function(){
-			if(opts.unkown){
-				this.drawUnkown();
-				return
-			}
-			if(that._gender == 'Male')
-				this.drawMale();
-			else if(that._gender == 'Female')
-				this.drawFemale();
-			else
-				this.drawUnkownSex();
-			this.drawText();
-		},
-		drawText: function(){
-			that.text = paper.text(that._x+1, that._y+25, that.name);
-		},
-		drawUnkown: function(){
-			that.shape = paper.rect(that._x-3, that._y-2, that._rect+10, that._rect+10);
-			that.shape.attr('stroke', '#6E6E6E');
-			that.shape.attr('stroke-dasharray','- ');
-		},
-		drawUnkownSex: function(){
-			that.shape = paper.text(that._x+2, that._y, "?").attr({
-				font: "20px sans-serif"
-			});
-		},
-		drawMale: function(){
-			if(that._ifCurrent){
-				that.shape2 = paper.rect(that._x-8, that._y-7, that._rect+10, that._rect+10);
-				that.shape2.attr('stroke', that._rectStrokeColor);
-				that.shape2.attr('stroke-width',2);
-			}
-			that.shape = paper.rect(that._x-3, that._y-2, that._rect, that._rect);
-			that.shape.attr('stroke', that._rectStrokeColor);
-			that.shape.attr('stroke-width',that._strokeWidth);
-		},
-		drawFemale: function(){
-			if(that._ifCurrent){
-				that.shape2 = paper.circle(that._x, that._y+2, that._dia+6);
-				that.shape2.attr('stroke', that._strokeColor);
-				that.shape2.attr('stroke-width',2);
-			}
-			that.shape = paper.circle(that._x, that._y+2, that._dia);
-			that.shape.attr('stroke', that._strokeColor);
-			that.shape.attr('stroke-width',that._strokeWidth);
-		}
-	}
-	_f.init();
-	/*********************
-	 Instance Func
-	 **********************/
-	that.x = function(x){
-		if(x){
-			that._x = x;
-			if(that._gender == 'Male'){
-				that.shape.attr('x',that._x-3);
-				if(that.shape2)that.shape2.attr('x',that._x-8);
-			}else if(that._gender == 'Female'){
-				that.shape.attr('cx',that._x);
-				if(that.shape2)that.shape2.attr('cx',that._x);
-			}else{
-				that.shape.attr('x',that._x+2);
-			}
-			that.text.attr('x',that._x+1);
-			if(that.marriageLine && that.marriageLine.length>0){
-				for(var i in that.marriageLine){
-					if(that.marriageLine[i].line.id){
-						that.marriageLine[i].init();
-					}
-				}
-			}
-		}else{
-			return that._x;
-		}
-	}
-	that.y = function(y){
-		if(y){
-			that._y = y;
-			if(that._gender == 'Male'){
-				that.shape.attr('y',that._y-2);
-				if(that.shape2)that.shape2.attr('y',that._y-7);
-			}else if(that._gender == 'Female'){
-				that.shape.attr('cy',that._y+2);
-				if(that.shape2)that.shape2.attr('cy',that._y+2);
-			}else{
-				that.shape.attr('y',that._y);
-			}
-			that.text.attr('y',that._y+25);
-			if(that.marriageLine && that.marriageLine.length>0){
-				for(var i in that.marriageLine){
-					if(that.marriageLine[i].line.id){
-						that.marriageLine[i].init();
-					}
-				}
-			}
-		}else{
-			return that._y;
-		}
-	}
-};
+var paper = Raphael(document.getElementById("genogram-host"), 3000, 2000);
 
-var Line = function(paper,person, person2 ,relationship){
-	var that = this;
-	that.paper = paper;
-	that.person1 = person;
-	that.person2 = person2;
-	that.relationship = relationship;
-	that.y;
-	that.startX;
-	that.endX;
-	var drawFunc = {
-		marriage:function(){
-			var gap = 45;
-			var startX,startY,v = 15, h,end;
-			that.startX = startX = that.person1.x() + 2;
-			that.y = startY = that.person1.y() + gap;
-			that.endX = h = that.person2.x();
-			end = that.person2.y() + gap;
-			that.line = that.paper.path('M '+ startX +','+startY+'V '+(startY+v)+'H '+h+'V '+end);
-			that.person1.marriageLine = that.person1.marriageLine || [];
-			that.person2.marriageLine = that.person2.marriageLine || [];
-			that.person1.marriageLine.push(that);
-			that.person2.marriageLine.push(that);
-		},
-		child: function(type){
-			that.person1;
-			var startX = that.person2.x()+2,startY = that.person2.y() - 15;
-			var v = 25;
-			that.line = that.paper.path('M '+ startX +','+startY+'V '+(startY-v));
-			if(type == 'adopted child'){
-				var cls = 'adopted-child';
-				that.line.attr('stroke','blue');
-				that.line.node.className = cls;
-			}else if(type == 'foster child'){
-				var cls = 'foster-child';
-				that.line.attr('stroke','green');
-				that.line.node.className = cls;
-			}
 
-		}
-	};
-
-	that.init = function(){
-		if(that.line)that.line.remove();
-		switch (that.relationship){
-			case 'marriage':
-				drawFunc.marriage();
-				break;
-			case 'child':
-				drawFunc.child();
-				break;
-			case 'adopted child':
-				drawFunc.child('adopted child');
-				break;
-			case 'foster child':
-				drawFunc.child('foster child');
-				break;
-		}
-	};
-
-	that.init();
-};
-
-var PersonClass = function(id,name,sex,age,RelationshipFlag){
-	this.Id = id,
-	this.Name=name;
-	this.Sex= sex;
-	this.Age= age ||0;
-	this.Partner=[];
-	this.Guardian=[];
-	this.Parents=[];
-	this.BrothersAndSisters=[];
-	this.Children=[];
-	this.OtherFMember=[];
-	this.OtherNMember=[];
-	this.Mate = [];
-	this.SpecialFlag=RelationshipFlag || 0
-};
 
 var createTestData = function(){
-	var person = new PersonClass('p1','Current','Male',25);
-	var father = new PersonClass('p2','Father','Male',50);
-	var mother = new PersonClass('p3','Mother','Female',45);
-	person.Parents = [father, mother];
-	var child1 = new PersonClass('p4','child1','Male',2);
-	var child1child1 = new PersonClass('p5','child1child1','Male',2);
-	child1child1.SpecialFlag = 3;
-	var child1child2 = new PersonClass('p6','child1child2','Male',2);
-	child1.Children = [child1child1,child1child2];
-	child1.SpecialFlag = 1;
-	var child1wife = new PersonClass('p7','child1wife','Female',2);
-	child1.Mate = [child1wife];
-	var child2 = new PersonClass('p8','child2','Male',2);
-	var child2wife = new PersonClass('p9','child2wife','Female',2);
-	child2.Mate = [child2wife];
-	var child2child1 = new PersonClass('p10','child2child1','Male',2);
-	child2.Children = [child2child1];
-	var child3 = new PersonClass('p11','child3','Female',2);
-	person.Children = [child1,child2,child3];
-	var wife = new PersonClass('p12','wife','Female',20);
-	var wife2 = new PersonClass('p13','wife2','Female',20,6);
-	person.Mate = [wife,wife2];
-	var brother = new PersonClass('p14','brother','Male',20);
-	var broWife = new PersonClass('p15','broWife','Female',20,0);
-	brother.Mate = [broWife];
-	var sister = new PersonClass('p16','sister','Female',20);
-	person.BrothersAndSisters = [brother,sister];
-	return person;
+var person = new PersonClass('p1','Current','Male',25);
+var father = new PersonClass('p2','Father','Male',50);
+var mother = new PersonClass('p3','Mother','Female',45);
+person.Parents = [father, mother];
+var child1 = new PersonClass('p4','child1','Male',2);
+var child1child1 = new PersonClass('p5','child1child1','Male',2);
+child1child1.SpecialFlag = 3;
+var child1child2 = new PersonClass('p6','child1child2','Male',2);
+child1.Children = [child1child1,child1child2];
+child1.SpecialFlag = 1;
+var child1wife = new PersonClass('p7','child1wife','Female',2);
+child1.Mate = [];
+var child2 = new PersonClass('p8','child2','Male',2);
+var child2wife = new PersonClass('p9','child2wife','Female',2);
+child2.Mate = [child2wife];
+var child3child1 = new PersonClass('p10','child3child1','Male',2);
+child2.Children = [];
+var child3 = new PersonClass('p11','child3','Female',2);
+	child3.Children = [child3child1];
+person.Children = [child1,child2,child3];
+var wife = new PersonClass('p12','wife','Female',20);
+var wife2 = new PersonClass('p13','wife2','Female',20,6);
+person.Mate = [/*wife,*/wife2];
+var brother = new PersonClass('p14','brother','Male',20);
+var broWife = new PersonClass('p15','broWife','Female',20,0);
+brother.Mate = [broWife];
+var sister = new PersonClass('p16','sister','Female',20);
+person.BrothersAndSisters = [brother,sister];
+return person;
 };
+var dataStr = '{"Age":4,"BrothersAndSisters":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"00498c8c-8bbd-e411-b3c6-00155d3c2f11","Mate":[{"Age":3,"BrothersAndSisters":[],"Children":[],"Id":"3ee6a206-86c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Ada","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Nemo","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":5},{"Age":4,"BrothersAndSisters":[],"Children":[],"Id":"ad59cc7e-58bd-e411-80b8-00155d3c2f26","Mate":[{"Age":3,"BrothersAndSisters":[],"Children":[],"Id":"3ee6a206-86c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Ada","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Lily","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":1},{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"1e10e680-a677-4e41-b978-14d925e5b92f","Mate":[{"Age":13,"BrothersAndSisters":[],"Children":[],"Id":"a7ff5755-7dc0-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Carol Client","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0}],"Children":[{"Age":22,"BrothersAndSisters":[],"Children":[],"Id":"349a21ff-4cc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"BellaWang Client","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":1},{"Age":27,"BrothersAndSisters":[],"Children":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"1d6b4568-d5c6-e411-80ca-00155d3c2f4b","Mate":[],"MaternalGrandparents":[],"Name":"justin","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"Id":"8d8dd9fa-2cbf-e411-8a5b-001dd8b721bd","Mate":[{"Age":2,"BrothersAndSisters":[],"Children":[],"Id":"ed399ad4-7fc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"bella","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Louis","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":1},{"Age":0,"BrothersAndSisters":[],"Children":[{"Age":23,"BrothersAndSisters":[],"Children":[],"Id":"cd492b0c-75bd-e411-80b8-00155d3c2f26","Mate":[],"MaternalGrandparents":[],"Name":"JH Person","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"Id":"1ae5b08d-ac09-49cf-a5fc-08f22c2d3d2a","Mate":[{"Age":2,"BrothersAndSisters":[],"Children":[],"Id":"ed399ad4-7fc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"bella","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0},{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"fe44e915-7dfd-451f-aee5-793f4353d539","Mate":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"127ffa47-2bc6-e411-80c9-00155d3c2f47","Mate":[],"MaternalGrandparents":[],"Name":"ddd","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0}],"Id":"ad59cc7e-58bd-e411-80b8-00155d3c2f26","Mate":[],"MaternalGrandparents":[],"Name":"Lily","Parents":[{"Age":61,"BrothersAndSisters":[],"Children":[],"Id":"6a04254b-90c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"John","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"PaternalGrandparents":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"64c48258-79c0-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"jfwang","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"Sex":"Female","SpecialFlag":0}';
+var draw = new DrawFunc(paper,{
+	dataSource:null//createTestData()
+});
+$('#scroller').append($('#genogram-host'));
+var genoBody = new IScroll('#geno-body', { scrollX:true,scrollbars: true, mouseWheel: true, interactiveScrollbars: true });
 
-var RelationshipFlag = {
-	normal   : 0,
-	Adopted  : 1,
-	InLaw    : 2,
-	Foster   : 3,
-	Half     : 4,
-	Step     : 5,
-	Unknow   : 6
-};
+genoBody.scrollTo(-paper.width/2 + 300,-paper.height/2+300);
 
-var PersonsGap = function(person1, person2){
-	var x = Math.abs(person1.x() - person2.x());
-	var y = Math.abs(person1.y() - person2.y());
-	return {x:x,y:y};
-};
+	//draw.reInit(JSON.parse(dataStr));
+	draw.reInit(createTestData());
 
-var DrawFunc = function(paper, opts){
-	if(!paper) return;
-	var that = this;
-	that.paper = paper;
-	/***************
-	      Config
-	 ***************/
-	var _opts = {
-		origin:{
-			x: paper.width/2,
-			y: paper.height/2
-		},
-		gapX: 70,
-		gapY: 100,
-		dataSource: null
-	};
-	for(var i in opts){
-		_opts[i] = opts[i];
-	}
-	/*******************
-		Private Func
-	********************/
-	var generations = null;
-	var _f = {
-		locationCenter: function(){
-
-		},
-		convertDataAndDraw: function(person){
-			generations = {
-				cPre2:{
-					line:[]
-				},
-				cPre1:{
-					normal:[],
-					line:[]
-				},
-				c0:{
-					current:null,
-					mate:[],
-					bOs:[],
-					line:[]
-				},
-				c1:{
-					line:[]
-				}
-			};
-			var current = new Person(that.paper,{
-				id:person.Id,
-				x:_opts.origin.x,
-				y:_opts.origin.y,
-				gender:person.Sex,
-				name:person.Name,
-				current:true
-			});
-			generations.c0.current = current;
-			generations.c0.line.push(current);
-			// ## 1.Draw wife or husband
-			var mates = person.Mate;
-			for(var i in mates){
-				var p = mates[i];
-				if(p.SpecialFlag == RelationshipFlag.normal)
-					this.drawWifeOrHusband(p);
-			}
-			// ## 2.Draw brothers and sisters
-			var bOs = person.BrothersAndSisters;
-			for(var i in bOs){
-				var p = bOs[i];
-				this.drawBroAndSis(p);
-			}
-			// ## 3.Draw Children
-			var children = person.Children;
-			for(var i in children){
-				var p = children[i];
-				this.drawChilds(p);
-			}
-			// ## 4.set c0 position
-			this.setC0Position();
-			// ## 5.Draw parents
-			this.drawParents(person.Parents);
-		},
-		drawWifeOrHusband: function(person){
-			var x = generations.c0.line[generations.c0.line.length-1].x()+_opts.gapX;
-			var p = new Person(that.paper,{
-				id:person.Id,
-				x:x,
-				y:generations.c0.current.y(),
-				gender:person.Sex,
-				name:person.Name
-			});
-			new Line(that.paper,generations.c0.current,p,'marriage');
-			generations.c0.mate.push(p);
-			generations.c0.line.push(p);
-		},
-		drawBroAndSis: function(person){
-			var x = generations.c0.line[generations.c0.line.length-1].x()+_opts.gapX;
-			var p = new Person(that.paper,{
-				id:person.Id,
-				x:x,
-				y:generations.c0.current.y(),
-				gender:person.Sex,
-				name:person.Name
-			});
-			generations.c0.bOs.push(p);
-			generations.c0.line.push(p);
-			// ## Draw borather's wife or sisiter's husband
-			var mates = person.Mate;
-			for(var i in mates){
-				var m = mates[i];
-				if(m.SpecialFlag != 0)continue;
-				var x = generations.c0.line[generations.c0.line.length-1].x()+_opts.gapX;
-				var pm = new Person(that.paper,{
-					id:person.Id,
-					x:x,
-					y:generations.c0.current.y(),
-					gender:m.Sex,
-					name:m.Name
-				});
-				new Line(that.paper,p,pm,'marriage');
-				generations.c0.line.push(pm);
-			}
-		},
-		drawChilds: function(person){
-			var x = generations.c0.current.x() + (_opts.gapX/2);
-			var y = generations.c0.current.y() + _opts.gapY;
-			if(generations.c1.line.length>0){
-				x = generations.c1.line[generations.c1.line.length-1].x() + _opts.gapX;
-				y = generations.c1.line[generations.c1.line.length-1].y();
-			}
-			var p = new Person(that.paper,{
-				id:person.Id,
-				x:x,
-				y:y,
-				gender:person.Sex,
-				name:person.Name
-			});
-				// ## Draw line
-			var relationShip = 'child';
-			switch (person.SpecialFlag){
-				case 0:
-					relationShip = 'child';
-					break;
-				case 1:
-					relationShip = 'adopted child';
-					break;
-				case 3:
-					relationShip = 'foster child';
-					break;
-			}
-			new Line(that.paper,generations.c0.current,p,relationShip);
-			generations.c1.line.push(p);
-			// ## 1.Draw Children
-			var children = person.Children;
-			var currentChild = null;
-			for(var i in children){
-				var x = generations.c1.line[generations.c1.line.length-1].x() + (_opts.gapX/2);
-				var y = generations.c1.line[generations.c1.line.length-1].y() + _opts.gapY;
-				if(currentChild){
-					x = currentChild.x() + _opts.gapX;
-					y = currentChild.y();
-				}
-				var c1 = children[i];
-				var cp1 = new Person(that.paper,{
-					id:person.Id,
-					x:x,
-					y:y,
-					gender:c1.Sex,
-					name:c1.Name
-				});
-				currentChild = cp1;
-				// ## Draw line
-				var relationShip = 'child';
-				switch (c1.SpecialFlag){
-					case 0:
-						relationShip = 'child';
-						break;
-					case 1:
-						relationShip = 'adopted child';
-						break;
-					case 3:
-						relationShip = 'foster child';
-						break;
-				}
-				new Line(that.paper,p,cp1,relationShip);
-			}
-			// ## 2.Draw Patner
-			var mates = person.Mate;
-			for(var i in mates){
-				var cm = mates[i];
-				if(cm.SpecialFlag != RelationshipFlag.normal)continue;
-				var x = generations.c1.line[generations.c1.line.length-1].x() + (_opts.gapX/2);
-				var y = generations.c1.line[generations.c1.line.length-1].y() + _opts.gapY;
-				if(currentChild){
-					x = currentChild.x() + (_opts.gapX/2);
-					y = currentChild.y() - _opts.gapY;
-				}
-				var cmp = new Person(that.paper,{
-					id:person.Id,
-					x:x,
-					y:y,
-					gender:cm.Sex,
-					name:cm.Name
-				});
-				new Line(that.paper,p,cmp,'marriage');
-				generations.c1.line.push(cmp);
-			}
-		},
-		setC0Position: function(){
-			if(generations.c1.line.length<=0)return;
-			// ## set current's wife position
-			var x = generations.c1.line[generations.c1.line.length-1].x()+(_opts.gapX/2);
-			generations.c0.mate[0].x(x);
-
-			// ## set brother and sister
-			var isWifeRight = false;
-			var currentForPerson = null;
-			for(var i in generations.c0.line){
-				var per = generations.c0.line[i];
-				if(isWifeRight){
-					var x = currentForPerson.x() + _opts.gapX;
-					var y =  currentForPerson.y();
-					per.x(x);
-					per.y(y);
-					currentForPerson = per;
-				}else if(per.id == generations.c0.mate[0].id){
-					isWifeRight = true;
-					currentForPerson = per;
-				}
-			}
-		},
-		drawParents: function(parents){
-			var adopted = [],normal = [],forster = [];
-			for(var i in parents){
-				var p = parents[i];
-				switch (p.SpecialFlag){
-					case RelationshipFlag.normal:
-						normal.push(p);
-						generations.cPre1.normal.push(p);
-						break;
-					case RelationshipFlag.Adopted:
-						adopted.push(p);
-						generations.cPre1.adopted.push(p);
-						break;
-					case RelationshipFlag.Foster:
-						forster.push(p);
-						generations.cPre1.forster.push(p);
-						break;
-				}
-			}
-			// ## 1.Draw normal
-			var par1 = normal[0],par2 = normal[1];
-			var x = generations.c0.current.x() - (_opts.gapX/2);
-			var y = generations.c0.current.y() - _opts.gapY;
-			var p1 = new Person(that.paper,{
-				id:par1.Id,
-				x:x,
-				y:y,
-				gender:par1.Sex,
-				name:par1.Name
-			});
-			generations.cPre1.line.push(p1);
-
-			var posPerson = generations.c0.bOs.length<=0?generations.c0.current: generations.c0.bOs[generations.c0.bOs.length-1];
-			var x = posPerson.x() + (_opts.gapX/2);
-			var y = posPerson.y() - _opts.gapY;
-			var p2 = new Person(that.paper,{
-				id:par2.Id,
-				x:x,
-				y:y,
-				gender:par2.Sex,
-				name:par2.Name
-			});
-			generations.cPre1.line.push(p2);
-			new Line(that.paper,p1,p2,'marriage');
-
-			// ## Draw line
-			new Line(that.paper,p1,generations.c0.current,'child');
-			for(var z in generations.c0.bOs){
-				var bs = generations.c0.bOs[z];
-				new Line(that.paper,p1,bs,'child');
-			}
-		}
-	};
-	_f.convertDataAndDraw(_opts.dataSource);
-	/*********************
-		Instance Func
-	**********************/
-};
-
-
-new DrawFunc(paper,{
-	dataSource:createTestData()
-})
 </script>
 
 
