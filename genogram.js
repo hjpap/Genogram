@@ -710,7 +710,7 @@
 						y = generations.cPre1.leftline[generations.cPre1.leftline.length-1].y()
 					}
 					var onePer = parents[i];
-					if(!onePer)return;
+					if(!onePer)continue;
 					var per = new Person(that.paper,{
                         id:onePer.Id?onePer.Id:'none-'+Math.floor(Math.random()*10000),
                         x:x,
