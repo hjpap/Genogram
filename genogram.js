@@ -1,6 +1,6 @@
 // ┌────────────────────────────────────────────────────────────────────┐ \\
-// │ Genogram                          │ \\
-// │                                       │ \\
+// │ Genogram                                                           │ \\
+// │                                                                    │ \\
 // └────────────────────────────────────────────────────────────────────┘ \\
 
 (function(window){
@@ -22,6 +22,8 @@
         return {x:x,y:y};
     };
     */
+	var gapX = 80;
+    var gapY = 100;
     var Person = function(paper, opts){
         if(!paper) return;
         var that = this;
@@ -29,6 +31,8 @@
          Config
          ***************/
         this.id = opts.id;
+		that.none = opts.none || false;
+		that.unkown = opts.unkown || false;
         that._gender = opts.gender || null;
         that._ifCurrent = opts.current || null;
         that.shape = null;
@@ -47,11 +51,11 @@
          ********************/
         var _f = {
             init: function(){
-                if(opts.none){
+                if(that.none){
                     this.drawNone();
                     return
                 }
-                if(opts.unkown){
+                if(that.unkown){
                     this.drawUnkown();
                     return
                 }
@@ -195,12 +199,15 @@
                     that.line.attr('stroke-dasharray','.');
                 }
             },
-            lineToNone: function(){
+            lineToNone: function(flag){
                 var gap = 45;
                 var startX,startY,v = 15, h;
                 that.startX = startX = that.person1.x() + 2;
                 that.y = startY = that.person1.y() + gap;
-                that.endX = h = that.person2.x()-32;
+                if(flag)
+					that.endX = h = that.person2.x()+3;
+				else
+					that.endX = h = that.person2.x()-gapX/2+3;
                 that.line = that.paper.path('M '+ startX +','+startY+'V '+(startY+v)+'H '+h);
                 that.person1.marriageLine = that.person1.marriageLine || [];
                 that.person2.marriageLine = that.person2.marriageLine || [];
@@ -225,6 +232,10 @@
                     break;
                 case 'lineToNone':
                     drawFunc.lineToNone();
+					break;
+				case 'lineToPerson':
+					drawFunc.lineToNone(true);
+					break;
             }
         };
         that.init();
@@ -242,8 +253,8 @@
                 x: paper.width/2,
                 y: paper.height/2
             },
-            gapX: 70,
-            gapY: 100,
+            gapX: gapX,
+            gapY: gapY,
             dataSource: null
         };
         for(var i in opts){
@@ -252,17 +263,49 @@
         /*******************
          Private Func
          ********************/
+		var _e = {
+			initZoom: function(){
+				var zoomoutDom = $('#geno-zoom-out');
+				var zoominDom = $('#geno-zoom-in');
+				var zoomsliderDom = $('#geno-zoom-slider');
+				var top = 23;
+				zoomoutDom.bind('click',function(){
+					if(that.zoom<0.6){
+						top = 46;
+					}else{
+						top+=11.5
+					}
+					zoomsliderDom.css('top',top+"px");
+					that.zoomOut();
+				});
+				zoominDom.bind('click',function(){
+					if(that.zoom>1.4){
+						top = 0;
+					}else{
+						top-=11.5
+					}
+					zoomsliderDom.css('top',top+"px");
+					that.zoomIn();
+				});
+			}
+		}
+		_e.initZoom();
+		
         var generations = null;
         var _f = {
             convertDataAndDraw: function(person){
                 if(!person)return;
                 generations = {
                     cPre2:{
+						PaternalGrandparents:[],
+						MaternalGrandparents:[],
                         line:[]
                     },
                     cPre1:{
-                        normal:[],
-                        line:[]
+                        normal:{father:null,mother:null},
+						adopted:{father:null,mother:null},
+						foster:{father:null,mother:null},
+						leftline:[]
                     },
                     c0:{
                         current:null,
@@ -273,6 +316,7 @@
                     c1:{
                         c1line:[],
                         line:[],
+						bOs:[],
                         children:[]
                     }
                 };
@@ -325,7 +369,7 @@
                     y:generations.c0.current.y(),
                     none:true
                 });
-                new Line(that.paper,generations.c0.current,p,'lineToNone');
+                //new Line(that.paper,generations.c0.current,p,'lineToNone');
                 generations.c0.mate.push(p);
                 generations.c0.line.push(p);
             },
@@ -338,7 +382,7 @@
                     gender:person.Sex,
                     name:person.Name
                 });
-                new Line(that.paper,generations.c0.current,p,'marriage');
+                //new Line(that.paper,generations.c0.current,p,'marriage');
                 generations.c0.mate.push(p);
                 generations.c0.line.push(p);
             },
@@ -384,6 +428,7 @@
                     gender:person.Sex,
                     name:person.Name
                 });
+				generations.c1.bOs.push(p);
                 // ## Draw line
                 var relationShip = 'child';
                 switch (person.SpecialFlag){
@@ -484,76 +529,221 @@
                 generations.c0.mate[0].x(x);
 
                 // ## set brother and sister
-                var isWifeRight = false;
+                var isMateRight = false;
                 var currentForPerson = null;
                 for(var i in generations.c0.line){
                     var per = generations.c0.line[i];
-                    if(isWifeRight){
+                    if(isMateRight){
                         var x = currentForPerson.x() + _opts.gapX;
                         var y =  currentForPerson.y();
                         per.x(x);
                         per.y(y);
                         currentForPerson = per;
                     }else if(per.id == generations.c0.mate[0].id){
-                        isWifeRight = true;
+                        isMateRight = true;
                         currentForPerson = per;
                     }
                 }
+				// ## Draw Marriage Line
+				if(generations.c0.mate[0] && generations.c0.mate[0].none == false){
+					new Line(that.paper,generations.c0.current,generations.c0.mate[0],'marriage');
+				}else if(generations.c0.mate[0] && generations.c0.mate[0].none == true){
+					if(generations.c1.bOs.length>0){
+						new Line(that.paper,generations.c0.current,generations.c1.bOs[generations.c1.bOs.length-1],'lineToPerson');
+					}
+				}
             },
             drawParents: function(parents){
-                return;
-                var adopted = [],normal = [],forster = [];
+                var adopted = {father:null,mother:null},normal = {father:null,mother:null},forster = {father:null,mother:null};
                 for(var i in parents){
                     var p = parents[i];
                     switch (p.SpecialFlag){
                         case RelationshipFlag.normal:
-                            normal.push(p);
-                            generations.cPre1.normal.push(p);
+							if(p.Sex == "Male"){
+								normal.father = p;
+							}else if(p.Sex == "Female"){
+								normal.mother = p;
+							}
                             break;
                         case RelationshipFlag.Adopted:
-                            adopted.push(p);
-                            generations.cPre1.adopted.push(p);
+							if(p.Sex == "Male"){
+								adopted.father = p;
+							}else if(p.Sex == "Female"){
+								adopted.mother = p;
+							}
                             break;
                         case RelationshipFlag.Foster:
-                            forster.push(p);
-                            generations.cPre1.forster.push(p);
+							if(p.Sex == "Male"){
+								forster.father = p;
+							}else if(p.Sex == "Female"){
+								forster.mother = p;
+							}
                             break;
                     }
                 }
                 // ## 1.Draw normal
-                var par1 = normal[0],par2 = normal[1];
+				this.drawNormalParents(normal);
+				// ## 2.Draw adopted
+				this.drawAdoptedOrFosterParents(adopted,'adopted');
+				// ## 3.Draw foster
+				this.drawAdoptedOrFosterParents(forster,'foster');
+            },
+			drawNormalParents: function(normal){
+				var personData = _opts.dataSource;
+				if(normal.mother == null && normal.father == null){
+					if(personData.PaternalGrandparents.length == 0 && personData.MaternalGrandparents.length == 0)return;
+					// ## Have no parents but grandparents
+					normal.father = new PersonClass();
+					normal.mother = new PersonClass();
+				}
+				// ## Draw Father
+				var father = normal.father?normal.father:new PersonClass(),mother = normal.mother?normal.mother:new PersonClass();
                 var x = generations.c0.current.x() - (_opts.gapX/2);
                 var y = generations.c0.current.y() - _opts.gapY;
-                var p1 = new Person(that.paper,{
-                    id:par1.Id,
+                var fa = new Person(that.paper,{
+                    id:father.Id?father.Id:'none-'+Math.floor(Math.random()*10000),
                     x:x,
                     y:y,
-                    gender:par1.Sex,
-                    name:par1.Name
+                    gender:father.Id?father.Sex:'Unkown',
+                    name:father.Name,
                 });
-                generations.cPre1.line.push(p1);
-
-                var posPerson = generations.c0.bOs.length<=0?generations.c0.current: generations.c0.bOs[generations.c0.bOs.length-1];
-                var x = posPerson.x() + (_opts.gapX/2);
-                var y = posPerson.y() - _opts.gapY;
-                var p2 = new Person(that.paper,{
-                    id:par2.Id,
+                generations.cPre1.normal.father = fa;
+				// ## Draw Paternal Grandparents
+				personData.PaternalGrandparents = personData.PaternalGrandparents||[];
+				for(var i in personData.PaternalGrandparents){
+					var x = generations.cPre1.normal.father.x() - (_opts.gapX/2);
+					var y = generations.cPre1.normal.father.y() - _opts.gapY;
+					if(generations.cPre2.PaternalGrandparents[generations.cPre2.PaternalGrandparents.length-1]){
+						x = generations.cPre2.PaternalGrandparents[generations.cPre2.PaternalGrandparents.length-1].x() + _opts.gapX;
+						y = generations.cPre2.PaternalGrandparents[generations.cPre2.PaternalGrandparents.length-1].y();
+					}
+					var onePer = personData.PaternalGrandparents[i];
+					var per = new Person(that.paper,{
+                        id:onePer.Id,
+                        x:x,
+                        y:y,
+                        gender:onePer.Sex,
+                        name:onePer.Name
+                    });
+					generations.cPre2.PaternalGrandparents.push(per);
+					generations.cPre2.line.push(per);
+				}
+				if(personData.PaternalGrandparents.length>0)new Line(that.paper, generations.cPre2.PaternalGrandparents[0],generations.cPre1.normal.father,'child');
+				if(personData.PaternalGrandparents.length==2){
+					new Line(that.paper,generations.cPre2.PaternalGrandparents[0],generations.cPre2.PaternalGrandparents[1],'marriage');
+				}else if(personData.PaternalGrandparents.length==1){
+					new Line(that.paper,generations.cPre2.PaternalGrandparents[0],generations.cPre1.normal.father,'lineToPerson');
+				}
+				
+				// ## Draw Mother
+				var posPerson = generations.c0.bOs.length<=0?generations.c0.current: generations.c0.bOs[generations.c0.bOs.length-1];
+				var x = posPerson.x() + (_opts.gapX/2);
+                var y = generations.c0.current.y() - _opts.gapY;
+				if(generations.cPre2.PaternalGrandparents.length>0 || personData.MaternalGrandparents.length>0){
+					x = generations.c0.current.x() + 3* _opts.gapX;
+					y = generations.c0.current.y() - _opts.gapY;
+				}
+                var mo = new Person(that.paper,{
+					id:mother.Id?father.Id:'none-'+Math.floor(Math.random()*10000),
                     x:x,
                     y:y,
-                    gender:par2.Sex,
-                    name:par2.Name
+                    gender:mother.Id?mother.Sex:'Unkown',
+                    name:mother.Name,
                 });
-                generations.cPre1.line.push(p2);
-                new Line(that.paper,p1,p2,'marriage');
+                generations.cPre1.normal.mother = mo;
+                new Line(that.paper,generations.cPre1.normal.father,generations.cPre1.normal.mother,'marriage');
+				
+				// ## Draw Maternal Grandparents
+				personData.MaternalGrandparents = personData.MaternalGrandparents || [];
+				for(var i in personData.MaternalGrandparents){
+					var x = generations.cPre1.normal.mother.x() - (_opts.gapX/2);
+					var y = generations.cPre1.normal.mother.y() - _opts.gapY;
+					if(generations.cPre2.MaternalGrandparents[generations.cPre2.MaternalGrandparents.length-1]){
+						x = generations.cPre2.MaternalGrandparents[generations.cPre2.MaternalGrandparents.length-1].x() + _opts.gapX;
+						y = generations.cPre2.MaternalGrandparents[generations.cPre2.MaternalGrandparents.length-1].y();
+					}
+					var onePer = personData.MaternalGrandparents[i];
+					var per = new Person(that.paper,{
+                        id:onePer.Id,
+                        x:x,
+                        y:y,
+                        gender:onePer.Sex,
+                        name:onePer.Name
+                    });
+					generations.cPre2.MaternalGrandparents.push(per);
+					generations.cPre2.line.push(per);
+				}
+				if(personData.MaternalGrandparents.length>0)new Line(that.paper, generations.cPre2.MaternalGrandparents[0],generations.cPre1.normal.mother,'child');
+				if(personData.MaternalGrandparents.length==2){
+					new Line(that.paper,generations.cPre2.MaternalGrandparents[0],generations.cPre2.MaternalGrandparents[1],'marriage');
+				}else if(personData.MaternalGrandparents.length==1){
+					new Line(that.paper,generations.cPre2.MaternalGrandparents[0],generations.cPre1.normal.mother,'lineToPerson');
+				}
 
                 // ## Draw line
-                new Line(that.paper,p1,generations.c0.current,'child');
+                new Line(that.paper, generations.cPre1.normal.father,generations.c0.current,'child');
                 for(var z in generations.c0.bOs){
                     var bs = generations.c0.bOs[z];
-                    new Line(that.paper,p1,bs,'child');
+                    new Line(that.paper, generations.cPre1.normal.father,bs,'child');
                 }
-            }
+			},
+			drawAdoptedOrFosterParents: function(parents,flag){
+				/*if(parents.father && !parents.mother){
+					parents.mother = new PersonClass();
+				}
+				if(!parents.father && parents.mother){
+					parents.father = new PersonClass();
+				}*/
+				if(!parents.father && !parents.mother)return;
+				for(var i in parents){
+					var x = generations.c0.current.x() - 2*_opts.gapX;
+					var y = generations.c0.current.y() - _opts.gapY;
+					if(generations.cPre1.normal.father){
+						x = generations.cPre1.normal.father.x() - 2*_opts.gapX;
+						y = generations.cPre1.normal.father.y()
+					}
+					if(generations.cPre1.leftline.length>0){
+						x = generations.cPre1.leftline[generations.cPre1.leftline.length-1].x() - _opts.gapX;
+						y = generations.cPre1.leftline[generations.cPre1.leftline.length-1].y()
+					}
+					var onePer = parents[i];
+					if(!onePer)return;
+					var per = new Person(that.paper,{
+                        id:onePer.Id?onePer.Id:'none-'+Math.floor(Math.random()*10000),
+                        x:x,
+                        y:y,
+                        gender:onePer.Sex,
+                        name:onePer.Name,
+						none: onePer.Id?false:true,
+                    });
+					generations.cPre1.leftline.push(per);
+					if(flag == 'adopted')generations.cPre1.adopted[i] = per;
+					if(flag == 'foster')generations.cPre1.foster[i] = per;
+				}
+				if(parents.father && parents.mother){
+					new Line(that.paper,generations.cPre1[flag].father,generations.cPre1[flag].mother,'marriage');
+				}
+				var lineStyle; 
+				if(flag == 'adopted'){
+					lineStyle = 'adopted';
+				}else if(flag == 'foster'){
+					lineStyle = 'foster';
+				}
+				
+				if(parents.father && parents.mother){
+					// ## there are both parents
+				}
+				if(parents.father && !parents.mother){
+					
+				}
+				if(!parents.father && parents.mother){
+					
+				}
+				new Line(that.paper,generations.c0.current,p,'lineToNone');
+				
+			}
         };
+		
         _f.convertDataAndDraw(_opts.dataSource);
         /*********************
          Instance Func
@@ -578,8 +768,8 @@
         };
         that.zoomOut = function () {
             that.zoom -= 0.2;
-            if (that.zoom < 0.5) {
-                that.zoom = 0.5;
+            if (that.zoom < 0.6) {
+                that.zoom = 0.6;
             }
             var ftDom = $("svg");
             var cssName = getVendorCssStyle("transform");
@@ -599,6 +789,8 @@
         this.Guardian = [];
         this.Parents = [];
         this.BrothersAndSisters = [];
+		this.MaternalGrandparents = [];
+		this.PaternalGrandparents = [];
         this.Children = [];
         this.OtherFMember = [];
         this.OtherNMember = [];
