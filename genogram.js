@@ -637,11 +637,14 @@
 				
 				// ## Draw Mother
 				var posPerson = generations.c0.bOs.length<=0?generations.c0.current: generations.c0.bOs[generations.c0.bOs.length-1];
-				var x = posPerson.x() + (_opts.gapX/2);
+				var x = posPerson.x() + (_opts.gapX/2),xx;
                 var y = generations.c0.current.y() - _opts.gapY;
 				if(generations.cPre2.PaternalGrandparents.length>0 || personData.MaternalGrandparents.length>0){
-					x = generations.c0.current.x() + 3* _opts.gapX;
+					xx = generations.c0.current.x() + 3* _opts.gapX;
 					y = generations.c0.current.y() - _opts.gapY;
+				}
+				if(x<xx){
+					x = xx;
 				}
                 var mo = new Person(that.paper,{
 					id:mother.Id?father.Id:'none-'+Math.floor(Math.random()*10000),
@@ -739,7 +742,7 @@
 				if(!parents.father && parents.mother){
 					
 				}
-				new Line(that.paper,generations.c0.current,p,'lineToNone');
+				//new Line(that.paper,generations.c0.current,p,'lineToNone');
 				
 			}
         };
