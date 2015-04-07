@@ -100,6 +100,7 @@
 			width:100%;
 			height:100%;
 			z-index:9999;
+			display:none;
 		}
 		.geno-loading-img{
 			position:absolute;
@@ -215,7 +216,7 @@ var dataStr = '{"Age":4,"BrothersAndSisters":[{"Age":0,"BrothersAndSisters":[],"
 		},
 		getData: function(){
 			//dataProvider.retrieveGenogram({ ClientId: AVESDK.XRM.getEntityId() });
-			func.loading(true);
+			
 			_v.draw.reInit(JSON.parse(dataStr));
 		},
 		loading: function(flag){
