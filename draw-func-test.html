@@ -55,7 +55,7 @@
 		}
 		.geno-zoom-in,
 		.geno-zoom-out{
-			-webkit-user-selected:none;
+			-webkit-user-select: none;
 			position:absolute;
 			width:22px;
 			height:20px;
@@ -90,9 +90,36 @@
 			-o-transition: all 0.3s ease-out;
 			transition: all 0.3s ease-out;
 		}
+		/*
+			Geno Loading
+		*/
+		.geno-loading{
+			position:fixed;
+			left:0;
+			top:0;
+			width:100%;
+			height:100%;
+			z-index:9999;
+		}
+		.geno-loading-img{
+			position:absolute;
+			left:49%;
+			top:40%;
+			height:30px;
+			width:30px;
+		}
+		.geno-loading-img img{
+			height:100%;
+			width:100%;
+		}
     </style>
 </head>
 <body>
+<div id="geno-loading" class="geno-loading">
+	<div class="geno-loading-img">
+		<img src="ave_msf_rpg_geno_progress_icon.gif"/>
+	</div>
+</div>
 
 <div id="geno-body" class="geno-body">
 	<div id="scroller" style="width:3000px;"></div>
@@ -122,7 +149,7 @@ var createTestData = function(){
 	var person = new PersonClass('p1','Current','Male',25);
 	var father = new PersonClass('p2','Father','Male',50);
 	person.PaternalGrandparents = [fatherFather,fatherMother];
-	person.MaternalGrandparents = [fatherMother,fatherMother];
+	person.MaternalGrandparents = [fatherFather,fatherMother];
 	var mother = new PersonClass('p3','Mother','Female',45);
 	
 	var adoptedfather = new PersonClass('p2','adoptedfather','Male',50,1);
@@ -130,7 +157,7 @@ var createTestData = function(){
 	var fosterfather = new PersonClass('p2','fosterfather','Male',50,3);
 	var fosterdmother = new PersonClass('p3','fosterdmother','Female',45,3);
 	
-	person.Parents = [father, mother,adoptedfather,adoptedmother,fosterdmother];
+	person.Parents = [father, mother, adoptedfather, adoptedmother, fosterdmother, fosterfather, fosterfather];
 	var child1 = new PersonClass('p4','child1','Male',2);
 	var child1child1 = new PersonClass('p5','child1child1','Male',2);
 	child1child1.SpecialFlag = 3;
@@ -158,16 +185,78 @@ var createTestData = function(){
 	return person;
 };
 var dataStr = '{"Age":4,"BrothersAndSisters":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"00498c8c-8bbd-e411-b3c6-00155d3c2f11","Mate":[{"Age":3,"BrothersAndSisters":[],"Children":[],"Id":"3ee6a206-86c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Ada","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Nemo","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":5},{"Age":4,"BrothersAndSisters":[],"Children":[],"Id":"ad59cc7e-58bd-e411-80b8-00155d3c2f26","Mate":[{"Age":3,"BrothersAndSisters":[],"Children":[],"Id":"3ee6a206-86c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Ada","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Lily","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":1},{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"1e10e680-a677-4e41-b978-14d925e5b92f","Mate":[{"Age":13,"BrothersAndSisters":[],"Children":[],"Id":"a7ff5755-7dc0-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"Carol Client","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0}],"Children":[{"Age":22,"BrothersAndSisters":[],"Children":[],"Id":"349a21ff-4cc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"BellaWang Client","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":1},{"Age":27,"BrothersAndSisters":[],"Children":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"1d6b4568-d5c6-e411-80ca-00155d3c2f4b","Mate":[],"MaternalGrandparents":[],"Name":"justin","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"Id":"8d8dd9fa-2cbf-e411-8a5b-001dd8b721bd","Mate":[{"Age":2,"BrothersAndSisters":[],"Children":[],"Id":"ed399ad4-7fc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"bella","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":0}],"MaternalGrandparents":[],"Name":"Louis","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":1},{"Age":0,"BrothersAndSisters":[],"Children":[{"Age":23,"BrothersAndSisters":[],"Children":[],"Id":"cd492b0c-75bd-e411-80b8-00155d3c2f26","Mate":[],"MaternalGrandparents":[],"Name":"JH Person","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"Id":"1ae5b08d-ac09-49cf-a5fc-08f22c2d3d2a","Mate":[{"Age":2,"BrothersAndSisters":[],"Children":[],"Id":"ed399ad4-7fc1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"bella","Parents":[],"PaternalGrandparents":[],"Sex":"Female","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0},{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"fe44e915-7dfd-451f-aee5-793f4353d539","Mate":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"127ffa47-2bc6-e411-80c9-00155d3c2f47","Mate":[],"MaternalGrandparents":[],"Name":"ddd","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"MaternalGrandparents":[],"Name":null,"Parents":[],"PaternalGrandparents":[],"Sex":null,"SpecialFlag":0}],"Id":"ad59cc7e-58bd-e411-80b8-00155d3c2f26","Mate":[],"MaternalGrandparents":[],"Name":"Lily","Parents":[{"Age":61,"BrothersAndSisters":[],"Children":[],"Id":"6a04254b-90c1-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"John","Parents":[],"PaternalGrandparents":[],"Sex":"Male","SpecialFlag":0}],"PaternalGrandparents":[{"Age":0,"BrothersAndSisters":[],"Children":[],"Id":"64c48258-79c0-e411-85e8-00155d3c2f11","Mate":[],"MaternalGrandparents":[],"Name":"jfwang","Parents":[],"PaternalGrandparents":[],"Sex":"Unkown","SpecialFlag":0}],"Sex":"Female","SpecialFlag":0}';
-var draw = new DrawFunc(paper,{
-	dataSource:null//createTestData()
-});
-$('#scroller').append($('#genogram-host'));
-var genoBody = new IScroll('#geno-body', { scrollX:true,scrollbars: true, mouseWheel: true, interactiveScrollbars: true });
+(function(){
+			
+	var _v = {
+		paper: null,
+		draw: null,
+		genoBody: null,
+	}
 
-genoBody.scrollTo(-paper.width/2 + 300,-paper.height/2+300);
+	var AjaxRequestId = {
+		Unknown: 0,
+		RetreveGenogram: 100
+	};
 
-	//draw.reInit(JSON.parse(dataStr));
-	draw.reInit(createTestData());
+	var func = {
+		init: function(){
+			_v.paper = Raphael(document.getElementById("genogram-host"), 3000, 2000);
+			_v.draw = new DrawFunc(_v.paper,{
+				dataSource:null//createTestData()
+			});
+			$('#scroller').append($('#genogram-host'));
+			_v.genoBody = new IScroll('#geno-body', { scrollX:true,scrollbars: true, mouseWheel: true, interactiveScrollbars: true });
+			
+			var resizeFunc = function(){
+				_v.genoBody.scrollTo(-_v.paper.width/2 + $(window).width()/2,-_v.paper.height/2+$(window).height()/2);
+			}
+			resizeFunc();
+			$(window).resize(resizeFunc);
+		},
+		getData: function(){
+			//dataProvider.retrieveGenogram({ ClientId: AVESDK.XRM.getEntityId() });
+			func.loading(true);
+			_v.draw.reInit(JSON.parse(dataStr));
+		},
+		loading: function(flag){
+			if(flag == true){
+				$('#geno-loading').show();
+			}else if(flag == false){
+				$('#geno-loading').hide();
+			}
+		}
+	}
+	
+	var dataProvider = {
+		retrieveGenogram: function(condition) {
+			debugger;
+			func.loading(true);
+			var ajaxMessage = AVESDK.CallPlugin.AjaxMessage.createNew();
+			ajaxMessage.Request = AVESDK.CallPlugin.Request.createNew(AjaxRequestId.RetreveGenogram);
+			ajaxMessage.Request.con = condition;
+			var jsonMessage = JSON.stringify(ajaxMessage);
+			AVESDK.CallPlugin.Execute("ave_commonperson", jsonMessage,
+				function (data) {
+					func.loading(false);
+					var response = JSON.parse(data).Response;
+					debugger
+					if (response.Error) {
+						console.log(response.Error);
+						return;
+					}
+					_v.draw.reInit(response.qr);
+				},
+				function (error) {
+					func.loading(false);
+					console.log(error);
+				}
+			);
+		}
+	}
+	
+	func.init();
+	func.getData();
+})()
 
 </script>
 

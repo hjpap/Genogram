@@ -33,6 +33,7 @@
         this.id = opts.id;
 		that.none = opts.none || false;
 		that.unkown = opts.unkown || false;
+		that.SpecialFlag = opts.SpecialFlag || 0;
         that._gender = opts.gender || null;
         that._ifCurrent = opts.current || null;
         that.shape = null;
@@ -213,7 +214,47 @@
                 that.person2.marriageLine = that.person2.marriageLine || [];
                 that.person1.marriageLine.push(that);
                 that.person2.marriageLine.push(that);
-            }
+            },
+			toChild: function(flag){
+				if(flag == 'adopted'){
+					var startX = that.person1.x() + gapX/2 + 3,
+						startY = that.person1.y() + 60,
+						v = startY + 15,
+						h = that.person2.x()+2,
+						v2 = v + 15;
+					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h+'V '+v2);
+					that.line.attr('stroke','blue');
+                    that.line.attr('stroke-dasharray','--');
+				}else if(flag == 'foster'){
+					var startX = that.person1.x() + gapX/2 + 3,
+							startY = that.person1.y() + 60,
+							v = startY + 42,
+							h = that.person2.x()-12;
+					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h);
+					that.line.attr('stroke','green');
+                    that.line.attr('stroke-dasharray','.');
+				}
+			},
+			toChildSingle: function(flag){
+				if(flag == 'adopted'){
+					var startX = that.person1.x(),
+						startY = that.person1.y() + 49,
+						v = startY + 26,
+						h = that.person2.x()+2,
+						v2 = v + 15;
+					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h+'V '+v2);
+					that.line.attr('stroke','blue');
+                    that.line.attr('stroke-dasharray','--');
+				}else if(flag == 'foster'){
+					var startX = that.person1.x(),
+						startY = that.person1.y() + 49,
+						v = startY + 55,
+						h = that.person2.x()-12;
+					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h);
+					that.line.attr('stroke','green');
+                    that.line.attr('stroke-dasharray','.');
+				}
+			}
         };
         that.init = function(){
             if(that.line)that.line.remove();
@@ -236,6 +277,19 @@
 				case 'lineToPerson':
 					drawFunc.lineToNone(true);
 					break;
+				case 'adoptedtochild':
+					drawFunc.toChild('adopted');
+					break;
+				case 'fostertochild':
+					drawFunc.toChild('foster');
+					break;
+				case 'adoptedtochildsingle':
+					drawFunc.toChildSingle('adopted');
+					break;
+				case 'fostertochildsingle':
+					drawFunc.toChildSingle('foster');
+					break;
+
             }
         };
         that.init();
@@ -270,7 +324,7 @@
 				var zoomsliderDom = $('#geno-zoom-slider');
 				var top = 23;
 				zoomoutDom.bind('click',function(){
-					if(that.zoom<0.6){
+					if(that.zoom<=0.61){
 						top = 46;
 					}else{
 						top+=11.5
@@ -279,7 +333,7 @@
 					that.zoomOut();
 				});
 				zoominDom.bind('click',function(){
-					if(that.zoom>1.4){
+					if(that.zoom>=1.39){
 						top = 0;
 					}else{
 						top-=11.5
@@ -326,7 +380,8 @@
                     y:_opts.origin.y,
                     gender:person.Sex,
                     name:person.Name,
-                    current:true
+                    current:true,
+					SpecialFlag:person.SpecialFlag
                 });
                 generations.c0.current = current;
                 generations.c0.line.push(current);
@@ -349,7 +404,9 @@
                 // ## 2.Draw brothers and sisters
                 for(var i in bOs){
                     var p = bOs[i];
-                    this.drawBroAndSis(p);
+					if(p.SpecialFlag == 1 || p.SpecialFlag == 3|| p.SpecialFlag == 0){
+						this.drawBroAndSis(p);
+					}
                 }
                 // ## 3.Draw Children
                 for(var i in children){
@@ -380,7 +437,8 @@
                     x:x,
                     y:generations.c0.current.y(),
                     gender:person.Sex,
-                    name:person.Name
+                    name:person.Name,
+					SpecialFlag:person.SpecialFlag
                 });
                 //new Line(that.paper,generations.c0.current,p,'marriage');
                 generations.c0.mate.push(p);
@@ -393,7 +451,8 @@
                     x:x,
                     y:generations.c0.current.y(),
                     gender:person.Sex,
-                    name:person.Name
+                    name:person.Name,
+					SpecialFlag:person.SpecialFlag
                 });
                 generations.c0.bOs.push(p);
                 generations.c0.line.push(p);
@@ -408,7 +467,8 @@
                         x:x,
                         y:generations.c0.current.y(),
                         gender:m.Sex,
-                        name:m.Name
+                        name:m.Name,
+						SpecialFlag:m.SpecialFlag
                     });
                     new Line(that.paper,p,pm,'marriage');
                     generations.c0.line.push(pm);
@@ -426,7 +486,8 @@
                     x:x,
                     y:y,
                     gender:person.Sex,
-                    name:person.Name
+                    name:person.Name,
+					SpecialFlag:person.SpecialFlag
                 });
 				generations.c1.bOs.push(p);
                 // ## Draw line
@@ -461,7 +522,8 @@
                         x:x,
                         y:y,
                         gender:c1.Sex,
-                        name:c1.Name
+                        name:c1.Name,
+						SpecialFlag:c1.SpecialFlag
                     });
                     generations.c1.children.push(cp1);
                     currentChild = cp1;
@@ -498,7 +560,8 @@
                         x:x,
                         y:y,
                         gender:cm.Sex,
-                        name:cm.Name
+                        name:cm.Name,
+						SpecialFlag:cm.SpecialFlag
                     });
                     new Line(that.paper,p,cmp,'marriage');
                     generations.c1.c1line.push(cmp);
@@ -591,7 +654,8 @@
 			drawNormalParents: function(normal){
 				var personData = _opts.dataSource;
 				if(normal.mother == null && normal.father == null){
-					if(personData.PaternalGrandparents.length == 0 && personData.MaternalGrandparents.length == 0)return;
+					if(personData.PaternalGrandparents.length == 0 && personData.MaternalGrandparents.length == 0
+					&&personData.BrothersAndSisters.length == 0)return;
 					// ## Have no parents but grandparents
 					normal.father = new PersonClass();
 					normal.mother = new PersonClass();
@@ -606,6 +670,7 @@
                     y:y,
                     gender:father.Id?father.Sex:'Unkown',
                     name:father.Name,
+					SpecialFlag:father.SpecialFlag
                 });
                 generations.cPre1.normal.father = fa;
 				// ## Draw Paternal Grandparents
@@ -623,7 +688,8 @@
                         x:x,
                         y:y,
                         gender:onePer.Sex,
-                        name:onePer.Name
+                        name:onePer.Name,
+						SpecialFlag: onePer.SpecialFlag
                     });
 					generations.cPre2.PaternalGrandparents.push(per);
 					generations.cPre2.line.push(per);
@@ -652,6 +718,7 @@
                     y:y,
                     gender:mother.Id?mother.Sex:'Unkown',
                     name:mother.Name,
+					SpecialFlag:mother.SpecialFlag
                 });
                 generations.cPre1.normal.mother = mo;
                 new Line(that.paper,generations.cPre1.normal.father,generations.cPre1.normal.mother,'marriage');
@@ -671,7 +738,8 @@
                         x:x,
                         y:y,
                         gender:onePer.Sex,
-                        name:onePer.Name
+                        name:onePer.Name,
+						SpecialFlag:onePer.SpecialFlag
                     });
 					generations.cPre2.MaternalGrandparents.push(per);
 					generations.cPre2.line.push(per);
@@ -687,7 +755,13 @@
                 new Line(that.paper, generations.cPre1.normal.father,generations.c0.current,'child');
                 for(var z in generations.c0.bOs){
                     var bs = generations.c0.bOs[z];
-                    new Line(that.paper, generations.cPre1.normal.father,bs,'child');
+					if(bs.SpecialFlag == 0){
+						new Line(that.paper, generations.cPre1.normal.father,bs,'child');
+					}else if(bs.SpecialFlag == 3){
+						new Line(that.paper, generations.cPre1.normal.father,bs,'foster child');
+					}else if(bs.SpecialFlag == 1){
+						new Line(that.paper, generations.cPre1.normal.father,bs,'adopted child');
+					}
                 }
 			},
 			drawAdoptedOrFosterParents: function(parents,flag){
@@ -718,14 +792,14 @@
                         gender:onePer.Sex,
                         name:onePer.Name,
 						none: onePer.Id?false:true,
+						SpecialFlag:onePer.SpecialFlag
                     });
 					generations.cPre1.leftline.push(per);
 					if(flag == 'adopted')generations.cPre1.adopted[i] = per;
 					if(flag == 'foster')generations.cPre1.foster[i] = per;
 				}
-				if(parents.father && parents.mother){
-					new Line(that.paper,generations.cPre1[flag].father,generations.cPre1[flag].mother,'marriage');
-				}
+				
+				// ## Draw Line
 				var lineStyle; 
 				if(flag == 'adopted'){
 					lineStyle = 'adopted';
@@ -735,15 +809,19 @@
 				
 				if(parents.father && parents.mother){
 					// ## there are both parents
+					new Line(that.paper,generations.cPre1[flag].father,generations.cPre1[flag].mother,'marriage');
+					var posPerson = generations.cPre1[flag].father;
+					if(generations.cPre1[flag].mother.x()<generations.cPre1[flag].father.x()){
+						posPerson = generations.cPre1[flag].mother;
+					}
+					new Line(that.paper,posPerson,generations.c0.current,flag+'tochild');
 				}
 				if(parents.father && !parents.mother){
-					
+					new Line(that.paper,generations.cPre1[flag].father,generations.c0.current,flag+'tochildsingle');
 				}
 				if(!parents.father && parents.mother){
-					
+					new Line(that.paper,generations.cPre1[flag].mother,generations.c0.current,flag+'tochildsingle');
 				}
-				//new Line(that.paper,generations.c0.current,p,'lineToNone');
-				
 			}
         };
 		
