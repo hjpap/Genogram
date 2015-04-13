@@ -39,7 +39,11 @@
         that.shape = null;
         that.shape2 = null;
         that.text = null;
+        that.deathSvg = null;
+        that.ageSvg = null;
         that.name = opts.name || "";
+        that.age = opts.age || "";
+        that.death = opts.death || false;
         that._dia = 5;
         that._rect = 10;
         that._x = opts.x || 10;
@@ -67,6 +71,51 @@
                 else
                     this.drawUnkownSex();
                 this.drawText();
+                this.drawAge();
+                this.drawDeath();
+            },
+            drawAge: function () {
+                if (that.ageSvg) {
+                    that.ageSvg.attr('x', that._x + 1);
+                    that.ageSvg.attr('y', that._y - 18);
+                } else {
+                    that.ageSvg = paper.text(that._x + 1, that._y - 18, that.age);
+                }
+            },
+            drawDeath: function () {
+                if (!that.death || that.none) return;
+                if (!that.deathSvg) {
+                    if (that._ifCurrent) {
+                        that.deathSvg = paper.text(that._x + 2, that._y + 3, 'X');
+                        that.deathSvg.attr({
+                            "font-size": "25px"
+                        });
+                    } else if (that._gender != 'Male' && that._gender != 'Female') {
+                        that.deathSvg = paper.text(that._x + 2, that._y, 'X');
+                        that.deathSvg.attr({
+                            "font-size": "18px"
+                        });
+                    } else {
+                        that.deathSvg = paper.text(that._x + 2, that._y + 3, 'X');
+                    }
+                } else {
+                    if (that._ifCurrent) {
+                        that.deathSvg.attr({
+                            "x": that._x + 2,
+                            "y": that._y + 3
+                        });
+                    } else if (that._gender != 'Male' && that._gender != 'Female') {
+                        that.deathSvg.attr({
+                            "x": that._x + 2,
+                            "y": that._y
+                        });
+                    } else {
+                        that.deathSvg.attr({
+                            "x": that._x + 2,
+                            "y": that._y + 3
+                        });
+                    }
+                }
             },
             drawText: function(){
                 if(!that.name)return;
@@ -132,6 +181,8 @@
                         }
                     }
                 }
+                _f.drawAge();
+                _f.drawDeath();
             }else{
                 return that._x;
             }
@@ -156,6 +207,8 @@
                         }
                     }
                 }
+                _f.drawAge();
+                _f.drawDeath();
             }else{
                 return that._y;
             }
@@ -379,7 +432,9 @@
                     x:_opts.origin.x,
                     y:_opts.origin.y,
                     gender:person.Sex,
-                    name:person.Name,
+                    name: person.Name,
+                    age: person.Age,
+                    death: person.Death,
                     current:true,
 					SpecialFlag:person.SpecialFlag
                 });
@@ -423,7 +478,7 @@
                 var p = new Person(that.paper,{
                     id:'none-'+Math.floor(Math.random()*10000),
                     x:x,
-                    y:generations.c0.current.y(),
+                    y: generations.c0.current.y(),
                     none:true
                 });
                 //new Line(that.paper,generations.c0.current,p,'lineToNone');
@@ -436,8 +491,10 @@
                     id:person.Id,
                     x:x,
                     y:generations.c0.current.y(),
-                    gender:person.Sex,
-                    name:person.Name,
+                    gender: person.Sex,
+                    age:person.Age,
+                    name: person.Name,
+                    death: person.Death,
 					SpecialFlag:person.SpecialFlag
                 });
                 //new Line(that.paper,generations.c0.current,p,'marriage');
@@ -451,7 +508,9 @@
                     x:x,
                     y:generations.c0.current.y(),
                     gender:person.Sex,
-                    name:person.Name,
+                    name: person.Name,
+                    age: person.Age,
+                    death: person.Death,
 					SpecialFlag:person.SpecialFlag
                 });
                 generations.c0.bOs.push(p);
@@ -467,7 +526,9 @@
                         x:x,
                         y:generations.c0.current.y(),
                         gender:m.Sex,
-                        name:m.Name,
+                        name: m.Name,
+                        age: m.Age,
+                        death: m.Death,
 						SpecialFlag:m.SpecialFlag
                     });
                     new Line(that.paper,p,pm,'marriage');
@@ -486,7 +547,9 @@
                     x:x,
                     y:y,
                     gender:person.Sex,
-                    name:person.Name,
+                    name: person.Name,
+                    age: person.Age,
+                    death: person.Death,
 					SpecialFlag:person.SpecialFlag
                 });
 				generations.c1.bOs.push(p);
@@ -522,7 +585,9 @@
                         x:x,
                         y:y,
                         gender:c1.Sex,
-                        name:c1.Name,
+                        name: c1.Name,
+                        age: c1.Age,
+                        death: c1.Death,
 						SpecialFlag:c1.SpecialFlag
                     });
                     generations.c1.children.push(cp1);
@@ -560,7 +625,9 @@
                         x:x,
                         y:y,
                         gender:cm.Sex,
-                        name:cm.Name,
+                        name: cm.Name,
+                        age: cm.Age,
+                        death: cm.Death,
 						SpecialFlag:cm.SpecialFlag
                     });
                     new Line(that.paper,p,cmp,'marriage');
@@ -669,7 +736,9 @@
                     x:x,
                     y:y,
                     gender:father.Id?father.Sex:'Unkown',
-                    name:father.Name,
+                    name: father.Name,
+                    age: father.Age,
+                    death: father.Death,
 					SpecialFlag:father.SpecialFlag
                 });
                 generations.cPre1.normal.father = fa;
@@ -688,7 +757,9 @@
                         x:x,
                         y:y,
                         gender:onePer.Sex,
-                        name:onePer.Name,
+                        name: onePer.Name,
+                        age: onePer.Age,
+                        death: onePer.Death,
 						SpecialFlag: onePer.SpecialFlag
                     });
 					generations.cPre2.PaternalGrandparents.push(per);
@@ -717,7 +788,9 @@
                     x:x,
                     y:y,
                     gender:mother.Id?mother.Sex:'Unkown',
-                    name:mother.Name,
+                    name: mother.Name,
+                    age: mother.Age,
+                    death: mother.Death,
 					SpecialFlag:mother.SpecialFlag
                 });
                 generations.cPre1.normal.mother = mo;
@@ -738,7 +811,9 @@
                         x:x,
                         y:y,
                         gender:onePer.Sex,
-                        name:onePer.Name,
+                        name: onePer.Name,
+                        age: onePer.Age,
+                        death: onePer.Death,
 						SpecialFlag:onePer.SpecialFlag
                     });
 					generations.cPre2.MaternalGrandparents.push(per);
@@ -790,7 +865,9 @@
                         x:x,
                         y:y,
                         gender:onePer.Sex,
-                        name:onePer.Name,
+                        name: onePer.Name,
+                        age: onePer.Age,
+                        death: onePer.Death,
 						none: onePer.Id?false:true,
 						SpecialFlag:onePer.SpecialFlag
                     });
