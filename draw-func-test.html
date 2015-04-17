@@ -158,7 +158,7 @@ var createTestData = function(){
 	var fosterfather = new PersonClass('p2','fosterfather','Male',50,3);
 	var fosterdmother = new PersonClass('p3','fosterdmother','Female',45,3);
 	
-	person.Parents = [father, mother, adoptedfather, adoptedmother, fosterdmother, fosterfather, fosterfather];
+	person.Parents = [father, mother, adoptedfather, fosterdmother];
 	var child1 = new PersonClass('p4','child1','Male',2);
 	var child1child1 = new PersonClass('p5','child1child1','Male',2);
 	child1child1.SpecialFlag = 3;
@@ -216,8 +216,8 @@ var dataStr = '{"Age":4,"Death":true,"BrothersAndSisters":[{"Age":0,"BrothersAnd
 		},
 		getData: function(){
 			//dataProvider.retrieveGenogram({ ClientId: AVESDK.XRM.getEntityId() });
-			
-			_v.draw.reInit(JSON.parse(dataStr));
+			_v.draw.reInit(createTestData());
+			//_v.draw.reInit(JSON.parse(dataStr));
 		},
 		loading: function(flag){
 			if(flag == true){

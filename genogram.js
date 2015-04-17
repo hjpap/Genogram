@@ -268,42 +268,36 @@
                 that.person1.marriageLine.push(that);
                 that.person2.marriageLine.push(that);
             },
-			toChild: function(flag){
-				if(flag == 'adopted'){
-					var startX = that.person1.x() + gapX/2 + 3,
+            toChild: function (flag) {
+                var startX = that.person1.x() + gapX / 2 + 3,
 						startY = that.person1.y() + 60,
-						v = startY + 15,
-						h = that.person2.x()+2,
+						v = startY + 12,
+						h = that.person2.x() + 2,
 						v2 = v + 15;
-					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h+'V '+v2);
+				if(flag == 'adopted'){
+				    that.line = that.paper.path('M ' + startX + ',' + startY + 'V ' + v + 'H ' + h + 'V ' + v2);
 					that.line.attr('stroke','blue');
                     that.line.attr('stroke-dasharray','--');
-				}else if(flag == 'foster'){
-					var startX = that.person1.x() + gapX/2 + 3,
-							startY = that.person1.y() + 60,
-							v = startY + 42,
-							h = that.person2.x()-12;
-					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h);
+				} else if (flag == 'foster') {
+				    v += 6;
+				    that.line = that.paper.path('M ' + startX + ',' + startY + 'V ' + v + 'H ' + h + 'V ' + v2);
 					that.line.attr('stroke','green');
                     that.line.attr('stroke-dasharray','.');
 				}
 			},
-			toChildSingle: function(flag){
-				if(flag == 'adopted'){
-					var startX = that.person1.x(),
+            toChildSingle: function (flag) {
+                var startX = that.person1.x(),
 						startY = that.person1.y() + 49,
-						v = startY + 26,
-						h = that.person2.x()+2,
+						v = startY + 20,
+						h = that.person2.x() + 2,
 						v2 = v + 15;
+				if(flag == 'adopted'){
 					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h+'V '+v2);
 					that.line.attr('stroke','blue');
                     that.line.attr('stroke-dasharray','--');
-				}else if(flag == 'foster'){
-					var startX = that.person1.x(),
-						startY = that.person1.y() + 49,
-						v = startY + 55,
-						h = that.person2.x()-12;
-					that.line = that.paper.path('M '+ startX +','+startY+'V '+v+'H '+h);
+				} else if (flag == 'foster') {
+				    v += 9;
+					that.line = that.paper.path('M ' + startX + ',' + startY + 'V ' + v + 'H ' + h + 'V ' + v2);
 					that.line.attr('stroke','green');
                     that.line.attr('stroke-dasharray','.');
 				}
@@ -434,7 +428,7 @@
                     gender:person.Sex,
                     name: person.Name,
                     age: person.Age,
-                    death: person.Death,
+                    death: person.Deceased,
                     current:true,
 					SpecialFlag:person.SpecialFlag
                 });
@@ -494,7 +488,7 @@
                     gender: person.Sex,
                     age:person.Age,
                     name: person.Name,
-                    death: person.Death,
+                    death: person.Deceased,
 					SpecialFlag:person.SpecialFlag
                 });
                 //new Line(that.paper,generations.c0.current,p,'marriage');
@@ -510,7 +504,7 @@
                     gender:person.Sex,
                     name: person.Name,
                     age: person.Age,
-                    death: person.Death,
+                    death: person.Deceased,
 					SpecialFlag:person.SpecialFlag
                 });
                 generations.c0.bOs.push(p);
@@ -528,7 +522,7 @@
                         gender:m.Sex,
                         name: m.Name,
                         age: m.Age,
-                        death: m.Death,
+                        death: m.Deceased,
 						SpecialFlag:m.SpecialFlag
                     });
                     new Line(that.paper,p,pm,'marriage');
@@ -549,7 +543,7 @@
                     gender:person.Sex,
                     name: person.Name,
                     age: person.Age,
-                    death: person.Death,
+                    death: person.Deceased,
 					SpecialFlag:person.SpecialFlag
                 });
 				generations.c1.bOs.push(p);
@@ -587,7 +581,7 @@
                         gender:c1.Sex,
                         name: c1.Name,
                         age: c1.Age,
-                        death: c1.Death,
+                        death: c1.Deceased,
 						SpecialFlag:c1.SpecialFlag
                     });
                     generations.c1.children.push(cp1);
@@ -627,7 +621,7 @@
                         gender:cm.Sex,
                         name: cm.Name,
                         age: cm.Age,
-                        death: cm.Death,
+                        death: cm.Deceased,
 						SpecialFlag:cm.SpecialFlag
                     });
                     new Line(that.paper,p,cmp,'marriage');
@@ -738,7 +732,7 @@
                     gender:father.Id?father.Sex:'Unkown',
                     name: father.Name,
                     age: father.Age,
-                    death: father.Death,
+                    death: father.Deceased,
 					SpecialFlag:father.SpecialFlag
                 });
                 generations.cPre1.normal.father = fa;
@@ -759,7 +753,7 @@
                         gender:onePer.Sex,
                         name: onePer.Name,
                         age: onePer.Age,
-                        death: onePer.Death,
+                        death: onePer.Deceased,
 						SpecialFlag: onePer.SpecialFlag
                     });
 					generations.cPre2.PaternalGrandparents.push(per);
@@ -790,7 +784,7 @@
                     gender:mother.Id?mother.Sex:'Unkown',
                     name: mother.Name,
                     age: mother.Age,
-                    death: mother.Death,
+                    death: mother.Deceased,
 					SpecialFlag:mother.SpecialFlag
                 });
                 generations.cPre1.normal.mother = mo;
@@ -813,7 +807,7 @@
                         gender:onePer.Sex,
                         name: onePer.Name,
                         age: onePer.Age,
-                        death: onePer.Death,
+                        death: onePer.Deceased,
 						SpecialFlag:onePer.SpecialFlag
                     });
 					generations.cPre2.MaternalGrandparents.push(per);
@@ -867,7 +861,7 @@
                         gender:onePer.Sex,
                         name: onePer.Name,
                         age: onePer.Age,
-                        death: onePer.Death,
+                        death: onePer.Deceased,
 						none: onePer.Id?false:true,
 						SpecialFlag:onePer.SpecialFlag
                     });
