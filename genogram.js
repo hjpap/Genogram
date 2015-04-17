@@ -44,8 +44,8 @@
         that.name = opts.name || "";
         that.age = opts.age || "";
         that.death = opts.death || false;
-        that._dia = 5;
-        that._rect = 10;
+        that._dia = 11;
+        that._rect = 20;
         that._x = opts.x || 10;
         that._y = opts.y || 10;
         that._strokeColor = '#F37883';
@@ -71,38 +71,48 @@
                 else
                     this.drawUnkownSex();
                 this.drawText();
-                this.drawAge();
                 this.drawDeath();
+				this.drawAge();
             },
             drawAge: function () {
+				if(!that.age)
+					return;
+				var disY = that._gender != 'Male'&&that._gender != 'Female'?15:8;
                 if (that.ageSvg) {
-                    that.ageSvg.attr('x', that._x + 1);
-                    that.ageSvg.attr('y', that._y - 18);
+					that.ageBgSvg.attr({x:that._x-4,y: that._y+disY-5});
+                    that.ageSvg.attr('x', that._x);
+                    that.ageSvg.attr('y', that._y + disY);
                 } else {
-                    that.ageSvg = paper.text(that._x + 1, that._y - 18, that.age);
+					that.ageBgSvg = paper.rect(that._x-4, that._y+disY-5,10,10);
+					that.ageBgSvg.attr('fill','#fff');
+					that.ageBgSvg.attr('stroke','#fff');
+                    that.ageSvg = paper.text(that._x, that._y+disY, that.age);
                 }
             },
             drawDeath: function () {
                 if (!that.death || that.none) return;
                 if (!that.deathSvg) {
                     if (that._ifCurrent) {
-                        that.deathSvg = paper.text(that._x + 2, that._y + 3, 'X');
+                        that.deathSvg = paper.text(that._x + 1, that._y + 8, 'X');
                         that.deathSvg.attr({
-                            "font-size": "25px"
+                            "font-size": "32px"
                         });
                     } else if (that._gender != 'Male' && that._gender != 'Female') {
                         that.deathSvg = paper.text(that._x + 2, that._y, 'X');
                         that.deathSvg.attr({
-                            "font-size": "18px"
+                            "font-size": "20px"
                         });
                     } else {
-                        that.deathSvg = paper.text(that._x + 2, that._y + 3, 'X');
+                        that.deathSvg = paper.text(that._x , that._y + 8, 'X');
+						that.deathSvg.attr({
+                            "font-size": "27px"
+                        });
                     }
                 } else {
                     if (that._ifCurrent) {
                         that.deathSvg.attr({
-                            "x": that._x + 2,
-                            "y": that._y + 3
+                            "x": that._x + 1,
+                            "y": that._y + 8
                         });
                     } else if (that._gender != 'Male' && that._gender != 'Female') {
                         that.deathSvg.attr({
@@ -111,15 +121,19 @@
                         });
                     } else {
                         that.deathSvg.attr({
-                            "x": that._x + 2,
-                            "y": that._y + 3
+                            "x": that._x ,
+                            "y": that._y + 8
                         });
                     }
                 }
             },
             drawText: function(){
                 if(!that.name)return;
-                that.text = paper.text(that._x+1, that._y+25, that.name);
+				if(that.text){
+					that.text.attr({'x':that._x+1,'y':that._y+30});
+					return;
+				}
+                that.text= paper.text(that._x+1, that._y+30, that.name);
             },
             drawNone:function(){
                 that.shape = paper.rect(that._x-3, that._y-2, that._rect+10, that._rect+10);
@@ -138,23 +152,39 @@
             },
             drawMale: function(){
                 if(that._ifCurrent){
-                    that.shape2 = paper.rect(that._x-8, that._y-7, that._rect+10, that._rect+10);
-                    that.shape2.attr('stroke', that._rectStrokeColor);
-                    that.shape2.attr('stroke-width',2);
+					if(that.shape2){
+						that.shape2.attr({x:that._x-that._rect/2-3,y:that._y-5});
+					}else{
+						that.shape2 = paper.rect(that._x-that._rect/2-3, that._y-5, that._rect+6, that._rect+6);
+						that.shape2.attr('stroke', that._rectStrokeColor);
+						that.shape2.attr('stroke-width',2);
+					}
                 }
-                that.shape = paper.rect(that._x-3, that._y-2, that._rect, that._rect);
-                that.shape.attr('stroke', that._rectStrokeColor);
-                that.shape.attr('stroke-width',that._strokeWidth);
+				if(that.shape){
+					that.shape.attr({x:that._x-that._rect/2,y:that._y-2});
+				}else{
+					that.shape = paper.rect(that._x-that._rect/2, that._y-2, that._rect, that._rect);
+					that.shape.attr('stroke', that._rectStrokeColor);
+					that.shape.attr('stroke-width',that._strokeWidth);
+				}
             },
             drawFemale: function(){
                 if(that._ifCurrent){
-                    that.shape2 = paper.circle(that._x+2, that._y+2, that._dia+6);
-                    that.shape2.attr('stroke', that._strokeColor);
-                    that.shape2.attr('stroke-width',2);
+					if( that.shape2 ){
+						that.shape2.attr({cx:that._x,cy:that._y+7}); 
+					}else{
+						that.shape2 = paper.circle(that._x, that._y+7, that._dia+4);
+						that.shape2.attr('stroke', that._strokeColor);
+						that.shape2.attr('stroke-width',2);
+					}
                 }
-                that.shape = paper.circle(that._x+2, that._y+2, that._dia);
-                that.shape.attr('stroke', that._strokeColor);
-                that.shape.attr('stroke-width',that._strokeWidth);
+				if(that.shape){
+					that.shape.attr({cx:that._x,cy:that._y+7});
+				}else{
+					that.shape = paper.circle(that._x, that._y+7, that._dia);
+					that.shape.attr('stroke', that._strokeColor);
+					that.shape.attr('stroke-width',that._strokeWidth);
+				}
             }
         }
         _f.init();
@@ -165,15 +195,16 @@
             if(x){
                 that._x = x;
                 if(that._gender == 'Male'){
-                    that.shape.attr('x',that._x-3);
-                    if(that.shape2)that.shape2.attr('x',that._x-8);
+                    //that.shape.attr('x',that._x-3);
+                    //if(that.shape2)that.shape2.attr('x',that._x-8);
+					_f.drawMale();
                 }else if(that._gender == 'Female'){
-                    that.shape.attr('cx',that._x+2);
-                    if(that.shape2)that.shape2.attr('cx',that._x);
+                    //that.shape.attr('cx',that._x+2);
+                    //if(that.shape2)that.shape2.attr('cx',that._x);
+					_f.drawFemale();
                 }else{
                     that.shape.attr('x',that._x+2);
                 }
-                if(that.text)that.text.attr('x',that._x+1);
                 if(that.marriageLine && that.marriageLine.length>0){
                     for(var i in that.marriageLine){
                         if(that.marriageLine[i].line.id){
@@ -181,8 +212,9 @@
                         }
                     }
                 }
-                _f.drawAge();
+				_f.drawText();
                 _f.drawDeath();
+				_f.drawAge();
             }else{
                 return that._x;
             }
@@ -191,15 +223,17 @@
             if(y){
                 that._y = y;
                 if(that._gender == 'Male'){
-                    that.shape.attr('y',that._y-2);
-                    if(that.shape2)that.shape2.attr('y',that._y-7);
+                    //that.shape.attr('y',that._y-2);
+                    //if(that.shape2)that.shape2.attr('y',that._y-7);
+					_f.drawMale();
                 }else if(that._gender == 'Female'){
-                    that.shape.attr('cy',that._y+2);
-                    if(that.shape2)that.shape2.attr('cy',that._y+2);
+                    //that.shape.attr('cy',that._y+2);
+                    //if(that.shape2)that.shape2.attr('cy',that._y+2);
+					_f.drawFemale();
                 }else{
                     that.shape.attr('y',that._y);
                 }
-                if(that.text)that.text.attr('y',that._y+25);
+                
                 if(that.marriageLine && that.marriageLine.length>0){
                     for(var i in that.marriageLine){
                         if(that.marriageLine[i].line.id){
@@ -207,8 +241,9 @@
                         }
                     }
                 }
+				_f.drawText();
+				_f.drawDeath();
                 _f.drawAge();
-                _f.drawDeath();
             }else{
                 return that._y;
             }
@@ -271,7 +306,7 @@
             toChild: function (flag) {
                 var startX = that.person1.x() + gapX / 2 + 3,
 						startY = that.person1.y() + 60,
-						v = startY + 12,
+						v = startY + 14,
 						h = that.person2.x() + 2,
 						v2 = v + 15;
 				if(flag == 'adopted'){
@@ -279,7 +314,7 @@
 					that.line.attr('stroke','blue');
                     that.line.attr('stroke-dasharray','--');
 				} else if (flag == 'foster') {
-				    v += 6;
+				    //v += 6;
 				    that.line = that.paper.path('M ' + startX + ',' + startY + 'V ' + v + 'H ' + h + 'V ' + v2);
 					that.line.attr('stroke','green');
                     that.line.attr('stroke-dasharray','.');
@@ -288,7 +323,7 @@
             toChildSingle: function (flag) {
                 var startX = that.person1.x(),
 						startY = that.person1.y() + 49,
-						v = startY + 20,
+						v = startY + 25,
 						h = that.person2.x() + 2,
 						v2 = v + 15;
 				if(flag == 'adopted'){
@@ -296,7 +331,7 @@
 					that.line.attr('stroke','blue');
                     that.line.attr('stroke-dasharray','--');
 				} else if (flag == 'foster') {
-				    v += 9;
+				    //v += 9;
 					that.line = that.paper.path('M ' + startX + ',' + startY + 'V ' + v + 'H ' + h + 'V ' + v2);
 					that.line.attr('stroke','green');
                     that.line.attr('stroke-dasharray','.');
